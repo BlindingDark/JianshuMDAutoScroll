@@ -3,11 +3,10 @@
 // @name:zh-CN   简书 Markdown 预览同步滚动
 // @namespace    jianshu
 // @include 	 *://www.jianshu.com/writer*
-// @version      1.0
+// @version      1.0.1
 // @description  jianshu Markdown preview AUTO scroll
 // @description:zh-CN  使简书的在线 Markdown 编辑器具有输入和预览同步滚动的功能
 // @author       BlindingDark
-// @match        http://tampermonkey.net/documentation.php?ext=dhdg
 // @grant        none
 // ==/UserScript==
 //
