@@ -5,7 +5,7 @@
 // @include 	 *://www.jianshu.com/writer*
 // @version      1.0.1
 // @description  jianshu Markdown preview AUTO scroll
-// @description:zh-CN  使简书的在线 Markdown 编辑器具有输入和预览同步滚动的功能
+// @description:zh-CN  给简书的在线 Markdown 编辑器增加输入预览同步滚动的功能
 // @author       BlindingDark
 // @grant        none
 // ==/UserScript==
