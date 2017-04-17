@@ -3,7 +3,7 @@
 // @name:zh-CN   简书 Markdown 预览同步滚动
 // @namespace    jianshu
 // @include 	 *://www.jianshu.com/writer*
-// @version      1.1
+// @version      1.2
 // @description  jianshu Markdown preview AUTO scroll
 // @description:zh-CN  给简书的在线 Markdown 编辑器增加输入预览同步滚动的功能
 // @author       BlindingDark
@@ -17,64 +17,97 @@
     var spPreview;//span6 preview 预览框
 
     function scrollEvent(){
-	// 如果0号输入框隐藏，就绑定到1号输入框
-	if($('.text.mousetrap').is(":hidden")){
-	    txtMain = $('.text.mousetrap')[1];
-	}else{
-	    txtMain = $('.text.mousetrap')[0];
-	}
+        // 如果0号输入框隐藏，就绑定到1号输入框
+        if($('.text.mousetrap').is(":hidden")){
+            txtMain = $('.text.mousetrap')[1];
+        }else{
+            txtMain = $('.text.mousetrap')[0];
+        }
 
-	spPreview = $('.span6.preview')[0];
+        spPreview = $('.span6.preview')[0];
 
-	txtMain.onscroll=function(){ 
-	    spPreview.scrollTop = Math.round((txtMain.scrollTop + txtMain.clientHeight) * spPreview.scrollHeight / txtMain.scrollHeight - spPreview.clientHeight);
-	};
 
-	spPreview.onscroll=function(){
-	    txtMain.scrollTop = Math.round((spPreview.scrollTop + spPreview.clientHeight) * txtMain.scrollHeight  / spPreview.scrollHeight - txtMain.clientHeight);
-	};
+        let mainFlag = false; // 抵消两个滚动事件之间互相触发
+        let preFlag = false; // 如果两个 flag 都为 true，证明是反弹过来的事件引起的
+
+        function scrolling(who){
+            if(who == 'pre'){
+                preFlag = true;
+                if (mainFlag === true){ // 抵消两个滚动事件之间互相触发
+                    mainFlag = false;
+                    preFlag = false;
+                    return;
+                }
+                txtMain.scrollTop = Math.round((spPreview.scrollTop + spPreview.clientHeight) * txtMain.scrollHeight  / spPreview.scrollHeight - txtMain.clientHeight);
+                return;
+            }
+            if(who == 'main'){
+                mainFlag = true;
+                if (preFlag === true){ // 抵消两个滚动事件之间互相触发
+                    mainFlag = false;
+                    preFlag = false;
+                    return;
+                }
+                spPreview.scrollTop = Math.round((txtMain.scrollTop + txtMain.clientHeight) * spPreview.scrollHeight / txtMain.scrollHeight - spPreview.clientHeight);
+                return;
+            }
+        }
+
+        function mainOnscroll(){
+            scrolling('main');
+        }
+
+        function preOnscroll(){
+            scrolling('pre');
+        }
+
+
+        txtMain.onscroll =  mainOnscroll;
+        spPreview.onscroll = preOnscroll;
+
+
     }
 
     function addSwitchListener(){
-	spSwitchMain = $('.span7.main')[0];
-	spSwitchMain.onclick=function(){
-	    scrollEvent();
-	};
+        spSwitchMain = $('.span7.main')[0];
+        spSwitchMain.onclick=function(){
+            scrollEvent();
+        };
     }
 
     function tampermonkey_wait(){
-	if((spSwitchMain = $('.span7.main')[0])===undefined){
-	    window.setTimeout(tampermonkey_wait,1000); 
-	}else{
-	    if ((txtMain = $('.text.mousetrap')[0])===undefined)	{    
-		window.setTimeout(tampermonkey_wait,1000); 
-	    } else {
-		if ((spPreview = $('.span6.preview')[0])===undefined){
-		    window.setTimeout(tampermonkey_wait,1000); 
-		} else {
-		    addSwitchListener();
-		    scrollEvent();
-		}
-	    }
-	}
+        if((spSwitchMain = $('.span7.main')[0])===undefined){
+            window.setTimeout(tampermonkey_wait,1000); 
+        }else{
+            if ((txtMain = $('.text.mousetrap')[0])===undefined)	{    
+                window.setTimeout(tampermonkey_wait,1000); 
+            } else {
+                if ((spPreview = $('.span6.preview')[0])===undefined){
+                    window.setTimeout(tampermonkey_wait,1000); 
+                } else {
+                    addSwitchListener();
+                    scrollEvent();
+                }
+            }
+        }
     }
 
     function jQuery_start(){
-	tampermonkey_wait();
+        tampermonkey_wait();
     }
 
     function Tampermonkey_jQuery_wait(){
-	if(typeof jQuery == 'undefined') {
-	    window.setTimeout(Tampermonkey_jQuery_wait,1000);
-	    console.log("waiting for jQuery prepared");
-	}
-	else {
-	    $ = jQuery;
-	    console.log("jQuery ready");
+        if(typeof jQuery == 'undefined') {
+            window.setTimeout(Tampermonkey_jQuery_wait,1000);
+            console.log("waiting for jQuery prepared");
+        }
+        else {
+            $ = jQuery;
+            console.log("jQuery ready");
 
-	    jQuery_start();
+            jQuery_start();
 
-	}
+        }
 
     }
 
