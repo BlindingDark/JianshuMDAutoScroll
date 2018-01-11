@@ -1,118 +1,91 @@
 // ==UserScript==
-// @name         Jianshu MD AUTO Scroll
-// @name:zh-CN   简书 Markdown 预览同步滚动
-// @namespace    jianshu
-// @include 	 *://www.jianshu.com/writer*
-// @version      1.2
-// @description  jianshu Markdown preview AUTO scroll
-// @description:zh-CN  给简书的在线 Markdown 编辑器增加输入预览同步滚动的功能
-// @author       BlindingDark
-// @grant        none
+// @name            简书 Markdown 预览同步滚动
+// @name:en         Jianshu MD AUTO Scroll
+// @namespace       https://github.com/BlindingDark/JianshuMDAutoScroll
+// @include         *://www.jianshu.com/writer*
+// @version         1.3
+// @description:en  jianshu Markdown preview AUTO scroll
+// @description     给简书的在线 Markdown 编辑器增加输入预览同步滚动的功能
+// @author          BlindingDark
+// @grant           none
+// @require      https://cdn.bootcss.com/jquery/3.2.1/jquery.js
 // ==/UserScript==
-//
+
 (function() {
-    'use strict';
-    var spSwitchMain;//span7 main 切换的那个按钮所在的窗体
-    var txtMain; //text mousetrap 输入框
-    var spPreview;//span6 preview 预览框
+  'use strict';
+  var spSwitchMain; // 切换的那个按钮所在的窗体
+  var txtMain;      // 输入框
+  var spPreview;    // 预览框
 
-    function scrollEvent(){
-        // 如果0号输入框隐藏，就绑定到1号输入框
-        if($('.text.mousetrap').is(":hidden")){
-            txtMain = $('.text.mousetrap')[1];
-        }else{
-            txtMain = $('.text.mousetrap')[0];
-        }
+  const SWITCH_FEATURE   = 'a.fa.fa-columns';
+  const EXPAND_FEATURE   = 'a.fa.fa-expand';
+  const COMPRESS_FEATURE = 'a.fa.fa-compress';
 
-        spPreview = $('.span6.preview')[0];
+  function getInput() {
+    return $('#arthur-editor');
+  }
 
+  function getPreview() {
+    return getInput().closest("div").parent().next();
+  }
 
-        let mainFlag = false; // 抵消两个滚动事件之间互相触发
-        let preFlag = false; // 如果两个 flag 都为 true，证明是反弹过来的事件引起的
+  function scrollEvent(){
+    txtMain = getInput()[0];
+    spPreview = getPreview()[0];
 
-        function scrolling(who){
-            if(who == 'pre'){
-                preFlag = true;
-                if (mainFlag === true){ // 抵消两个滚动事件之间互相触发
-                    mainFlag = false;
-                    preFlag = false;
-                    return;
-                }
-                txtMain.scrollTop = Math.round((spPreview.scrollTop + spPreview.clientHeight) * txtMain.scrollHeight  / spPreview.scrollHeight - txtMain.clientHeight);
-                return;
-            }
-            if(who == 'main'){
-                mainFlag = true;
-                if (preFlag === true){ // 抵消两个滚动事件之间互相触发
-                    mainFlag = false;
-                    preFlag = false;
-                    return;
-                }
-                spPreview.scrollTop = Math.round((txtMain.scrollTop + txtMain.clientHeight) * spPreview.scrollHeight / txtMain.scrollHeight - spPreview.clientHeight);
-                return;
-            }
-        }
-
-        function mainOnscroll(){
-            scrolling('main');
-        }
-
-        function preOnscroll(){
-            scrolling('pre');
-        }
-
-
-        txtMain.onscroll =  mainOnscroll;
-        spPreview.onscroll = preOnscroll;
-
-
+    if(txtMain == undefined) {
+      return;
+    }
+    if(spPreview == undefined) {
+      return;
     }
 
-    function addSwitchListener(){
-        spSwitchMain = $('.span7.main')[0];
-        spSwitchMain.onclick=function(){
-            scrollEvent();
-        };
-    }
+    let mainFlag = false; // 抵消两个滚动事件之间互相触发
+    let preFlag = false; // 如果两个 flag 都为 true，证明是反弹过来的事件引起的
 
-    function tampermonkey_wait(){
-        if((spSwitchMain = $('.span7.main')[0])===undefined){
-            window.setTimeout(tampermonkey_wait,1000); 
-        }else{
-            if ((txtMain = $('.text.mousetrap')[0])===undefined)	{    
-                window.setTimeout(tampermonkey_wait,1000); 
-            } else {
-                if ((spPreview = $('.span6.preview')[0])===undefined){
-                    window.setTimeout(tampermonkey_wait,1000); 
-                } else {
-                    addSwitchListener();
-                    scrollEvent();
-                }
-            }
+    function scrolling(who){
+      if(who == 'pre'){
+        preFlag = true;
+        if (mainFlag === true){ // 抵消两个滚动事件之间互相触发
+          mainFlag = false;
+          preFlag = false;
+          return;
         }
-    }
-
-    function jQuery_start(){
-        tampermonkey_wait();
-    }
-
-    function Tampermonkey_jQuery_wait(){
-        if(typeof jQuery == 'undefined') {
-            window.setTimeout(Tampermonkey_jQuery_wait,1000);
-            console.log("waiting for jQuery prepared");
+        txtMain.scrollTop = Math.round((spPreview.scrollTop + spPreview.clientHeight) * txtMain.scrollHeight  / spPreview.scrollHeight - txtMain.clientHeight);
+        return;
+      }
+      if(who == 'main'){
+        mainFlag = true;
+        if (preFlag === true){ // 抵消两个滚动事件之间互相触发
+          mainFlag = false;
+          preFlag = false;
+          return;
         }
-        else {
-            $ = jQuery;
-            console.log("jQuery ready");
-
-            jQuery_start();
-
-        }
-
+        spPreview.scrollTop = Math.round((txtMain.scrollTop + txtMain.clientHeight) * spPreview.scrollHeight / txtMain.scrollHeight - spPreview.clientHeight);
+        return;
+      }
     }
 
+    function mainOnscroll(){
+      scrolling('main');
+    }
 
-    Tampermonkey_jQuery_wait();
+    function preOnscroll(){
+      scrolling('pre');
+    }
 
+    getInput().on('scroll', () => mainOnscroll());
+    getPreview().on('scroll', () => preOnscroll());
+  }
 
+  function cycle() {
+    scrollEvent();
+    $(EXPAND_FEATURE).on('click', scrollEvent);
+    $(COMPRESS_FEATURE).on('click', scrollEvent);
+    $(SWITCH_FEATURE).on("click", scrollEvent);
+
+    window.setTimeout(cycle, 1000);
+  }
+
+  cycle();
 })();
